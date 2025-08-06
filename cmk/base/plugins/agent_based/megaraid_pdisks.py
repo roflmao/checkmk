@@ -153,16 +153,17 @@ def check_megaraid_pdisks(
 
     yield Result(state=State.OK, summary=f"Model: {disk.name}")
 
-    if disk.raw_size:
+    # Handle backward compatibility with old PDisk format
+    if hasattr(disk, 'raw_size') and disk.raw_size:
         yield Result(state=State.OK, summary=f"Size: {disk.raw_size}")
 
-    if disk.device_id:
+    if hasattr(disk, 'device_id') and disk.device_id:
         yield Result(state=State.OK, summary=f"Device ID: {disk.device_id}")
 
-    if disk.firmware_level:
+    if hasattr(disk, 'firmware_level') and disk.firmware_level:
         yield Result(state=State.OK, summary=f"Firmware: {disk.firmware_level}")
 
-    if disk.device_speed:
+    if hasattr(disk, 'device_speed') and disk.device_speed:
         yield Result(state=State.OK, summary=f"Speed: {disk.device_speed}")
 
     if disk.failures is not None:
