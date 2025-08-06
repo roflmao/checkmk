@@ -137,8 +137,7 @@ def check_megaraid_pdisks(
         summary=f"{disk.state.capitalize()}",
     )
 
-    if disk.name != item:
-        yield Result(state=State.OK, summary=f"Name: {disk.name}")
+    yield Result(state=State.OK, summary=f"Model: {disk.name}")
 
     if disk.raw_size:
         yield Result(state=State.OK, summary=f"Size: {disk.raw_size}")
