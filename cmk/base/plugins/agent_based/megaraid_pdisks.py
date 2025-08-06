@@ -63,8 +63,13 @@ def parse_megaraid_pdisks(  # pylint: disable=too-many-branches
             if line[2].isdigit():
                 current_adapter[int(line[5])] = int(line[2])
         elif line[0] == "Adapter" and len(line) == 2:
-            current_adapter = adapters[int(line[1][1:])]  # Raute weglassen
-            adapter = int(line[1][1:])
+            # Handle both "Adapter #0" and "Adapter 0" formats
+            adapter_id = line[1].lstrip('#')
+            if adapter_id.isdigit():
+                adapter = int(adapter_id)
+                if adapter not in adapters:
+                    adapters[adapter] = {}
+                current_adapter = adapters[adapter]
         elif line[0] == "Enclosure" and line[1] == "Device" and line[2] == "ID:":
             try:
                 enclosure_devid = int(line[-1])
@@ -89,6 +94,7 @@ def parse_megaraid_pdisks(  # pylint: disable=too-many-branches
         elif line[0] == "Predictive" and line[1] == "Failure" and line[2] == "Count:":
             predictive_failure_count = int(line[3])
         elif line[0] == "Firmware" and line[1] == "state:":
+            # Handle "Online, Spun Up" -> "Online"
             state = line[2].rstrip(",")
         elif line[0] == "Device" and line[1] == "Firmware" and line[2] == "Level:":
             firmware_level = line[3]
