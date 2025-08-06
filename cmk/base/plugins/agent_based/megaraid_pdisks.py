@@ -53,6 +53,8 @@ def parse_megaraid_pdisks(  # pylint: disable=too-many-branches
     predictive_failure_count = None
     raw_size = None
     device_id = None
+    firmware_level = None
+    device_speed = None
     for line in string_table:
         if line[0] == "adapter":
             current_adapter = {}
@@ -63,7 +65,7 @@ def parse_megaraid_pdisks(  # pylint: disable=too-many-branches
         elif line[0] == "Adapter" and len(line) == 2:
             current_adapter = adapters[int(line[1][1:])]  # Raute weglassen
             adapter = int(line[1][1:])
-        elif line[0] == "Enclosure" and line[1] == "Device":
+        elif line[0] == "Enclosure" and line[1] == "Device" and line[2] == "ID:":
             try:
                 enclosure_devid = int(line[-1])
                 # this should fix inventory problems.
@@ -88,6 +90,10 @@ def parse_megaraid_pdisks(  # pylint: disable=too-many-branches
             predictive_failure_count = int(line[3])
         elif line[0] == "Firmware" and line[1] == "state:":
             state = line[2].rstrip(",")
+        elif line[0] == "Device" and line[1] == "Firmware" and line[2] == "Level:":
+            firmware_level = line[3]
+        elif line[0] == "Device" and line[1] == "Speed:":
+            device_speed = " ".join(line[2:])
         elif line[0] == "Inquiry" and line[1] == "Data:":
             name = " ".join(line[2:])
             # Adapter, Enclosure, Encolsure Device ID, Slot, State, Name
@@ -95,13 +101,15 @@ def parse_megaraid_pdisks(  # pylint: disable=too-many-branches
             item = f"/c{adapter}/e{enclosure}/s{slot}"
 
             disk = megaraid.PDisk(
-                name, _NORMALIZE_STATE.get(state, state), predictive_failure_count, raw_size, device_id
+                name, _NORMALIZE_STATE.get(state, state), predictive_failure_count, raw_size, device_id, firmware_level, device_speed
             )
 
             parsed[item] = disk
             predictive_failure_count = None
             raw_size = None
             device_id = None
+            firmware_level = None
+            device_speed = None
 
             # Add it under the old item name. Not discovered, but can be used when checking
             legacy_item = f"{megaraid_pdisks_adapterstr[adapter]}{enclosure}/{slot}"
@@ -144,6 +152,12 @@ def check_megaraid_pdisks(
 
     if disk.device_id:
         yield Result(state=State.OK, summary=f"Device ID: {disk.device_id}")
+
+    if disk.firmware_level:
+        yield Result(state=State.OK, summary=f"Firmware: {disk.firmware_level}")
+
+    if disk.device_speed:
+        yield Result(state=State.OK, summary=f"Speed: {disk.device_speed}")
 
     if disk.failures is not None:
         yield Result(
