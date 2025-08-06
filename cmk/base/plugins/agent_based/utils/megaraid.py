@@ -37,6 +37,7 @@ _ABBREVIATIONS: Final = {
     "rec": "Recovery",
     "ro": "Read Only",
     "r": "Read Ahead Always",
+    "rbld": "Rebuild",
     "rw": "Read Write",
     "scc": "Scheduled Check Consistency",
     "sed": "Self Encryptive Drive",
@@ -102,6 +103,7 @@ PDISKS_DEFAULTS: Final = {
     "Unconfigured Bad": 1,
     "Online": 0,
     "Offline": 2,
+    "Rebuild": 1,
 }
 
 

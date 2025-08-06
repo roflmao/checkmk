@@ -145,10 +145,12 @@ def check_megaraid_pdisks(
     if (disk := section.get(item)) is None:
         return
 
+    # Expand abbreviated state names
+    expanded_state = megaraid.expand_abbreviation(disk.state)
     state_map = {**_FIXED_STATES, **params}
     yield Result(
-        state=State(state_map.get(disk.state, 3)),
-        summary=f"{disk.state.capitalize()}",
+        state=State(state_map.get(expanded_state, state_map.get(disk.state, 3))),
+        summary=f"{expanded_state.capitalize()}",
     )
 
     yield Result(state=State.OK, summary=f"Model: {disk.name}")
