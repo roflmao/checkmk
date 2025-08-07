@@ -53,8 +53,6 @@ def parse_megaraid_pdisks(  # pylint: disable=too-many-branches
     predictive_failure_count = None
     raw_size = None
     device_id = None
-    firmware_level = None
-    device_speed = None
     for line in string_table:
         if line[0] == "adapter":
             current_adapter = {}
@@ -96,10 +94,6 @@ def parse_megaraid_pdisks(  # pylint: disable=too-many-branches
         elif line[0] == "Firmware" and line[1] == "state:":
             # Handle "Online, Spun Up" -> "Online"
             state = line[2].rstrip(",")
-        elif line[0] == "Device" and line[1] == "Firmware" and line[2] == "Level:":
-            firmware_level = line[3]
-        elif line[0] == "Device" and line[1] == "Speed:":
-            device_speed = " ".join(line[2:])
         elif line[0] == "Inquiry" and line[1] == "Data:":
             # Clean up inquiry data by removing extra whitespace and joining non-empty parts
             inquiry_parts = [part.strip() for part in " ".join(line[2:]).split() if part.strip()]
@@ -109,15 +103,13 @@ def parse_megaraid_pdisks(  # pylint: disable=too-many-branches
             item = f"/c{adapter}/e{enclosure}/s{slot}"
 
             disk = megaraid.PDisk(
-                name, _NORMALIZE_STATE.get(state, state), predictive_failure_count, raw_size, device_id, firmware_level, device_speed
+                name, _NORMALIZE_STATE.get(state, state), predictive_failure_count, raw_size, device_id
             )
 
             parsed[item] = disk
             predictive_failure_count = None
             raw_size = None
             device_id = None
-            firmware_level = None
-            device_speed = None
 
             # Add it under the old item name. Not discovered, but can be used when checking
             legacy_item = f"{megaraid_pdisks_adapterstr[adapter]}{enclosure}/{slot}"
@@ -164,11 +156,6 @@ def check_megaraid_pdisks(
     if hasattr(disk, 'device_id') and disk.device_id:
         yield Result(state=State.OK, summary=f"Device ID: {disk.device_id}")
 
-    if hasattr(disk, 'firmware_level') and disk.firmware_level:
-        yield Result(state=State.OK, summary=f"Firmware: {disk.firmware_level}")
-
-    if hasattr(disk, 'device_speed') and disk.device_speed:
-        yield Result(state=State.OK, summary=f"Speed: {disk.device_speed}")
 
     if disk.failures is not None:
         yield Result(
