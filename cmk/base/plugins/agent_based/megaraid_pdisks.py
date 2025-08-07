@@ -92,7 +92,7 @@ def parse_megaraid_pdisks(  # pylint: disable=too-many-branches
             # Handle "Online, Spun Up" -> "Online"
             state = line[2].rstrip(",")
         elif line[0] == "Inquiry" and line[1] == "Data:":
-            # Clean up inquiry data by removing extra whitespace and joining non-empty parts
+            # Clean up inquiry data by removing extra whitespace and joining non-empty parts  
             inquiry_parts = [part.strip() for part in " ".join(line[2:]).split() if part.strip()]
             name = " ".join(inquiry_parts)
             # Adapter, Enclosure, Encolsure Device ID, Slot, State, Name
