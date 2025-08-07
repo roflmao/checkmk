@@ -74,7 +74,6 @@ class PDisk(NamedTuple):
     state: str
     failures: Optional[int]
     raw_size: Optional[str] = None
-    device_id: Optional[str] = None
 
 
 SectionPDisks = Mapping[str, PDisk]

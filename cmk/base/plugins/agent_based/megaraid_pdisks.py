@@ -52,7 +52,6 @@ def parse_megaraid_pdisks(  # pylint: disable=too-many-branches
     enclosure_devid = -181
     predictive_failure_count = None
     raw_size = None
-    device_id = None
     for line in string_table:
         if line[0] == "adapter":
             current_adapter = {}
@@ -85,8 +84,6 @@ def parse_megaraid_pdisks(  # pylint: disable=too-many-branches
 
         elif line[0] == "Slot":
             slot = int(line[-1])
-        elif line[0] == "Device" and line[1] == "Id:":
-            device_id = line[2]
         elif line[0] == "Raw" and line[1] == "Size:":
             raw_size = " ".join(line[2:])
         elif line[0] == "Predictive" and line[1] == "Failure" and line[2] == "Count:":
@@ -103,13 +100,12 @@ def parse_megaraid_pdisks(  # pylint: disable=too-many-branches
             item = f"/c{adapter}/e{enclosure}/s{slot}"
 
             disk = megaraid.PDisk(
-                name, _NORMALIZE_STATE.get(state, state), predictive_failure_count, raw_size, device_id
+                name, _NORMALIZE_STATE.get(state, state), predictive_failure_count, raw_size
             )
 
             parsed[item] = disk
             predictive_failure_count = None
             raw_size = None
-            device_id = None
 
             # Add it under the old item name. Not discovered, but can be used when checking
             legacy_item = f"{megaraid_pdisks_adapterstr[adapter]}{enclosure}/{slot}"
@@ -153,8 +149,6 @@ def check_megaraid_pdisks(
     if hasattr(disk, 'raw_size') and disk.raw_size:
         yield Result(state=State.OK, summary=f"Size: {disk.raw_size}")
 
-    if hasattr(disk, 'device_id') and disk.device_id:
-        yield Result(state=State.OK, summary=f"Device ID: {disk.device_id}")
 
 
     if disk.failures is not None:
