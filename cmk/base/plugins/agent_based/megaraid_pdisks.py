@@ -96,7 +96,11 @@ def parse_megaraid_pdisks(  # pylint: disable=too-many-branches
             inquiry_parts = [part.strip() for part in " ".join(line[2:]).split() if part.strip()]
             name = " ".join(inquiry_parts)
             # Adapter, Enclosure, Encolsure Device ID, Slot, State, Name
-            enclosure = adapters[adapter][enclosure_devid]
+            try:
+                enclosure = adapters[adapter][enclosure_devid]
+            except KeyError:
+                # Fallback: use enclosure_devid as enclosure number
+                enclosure = enclosure_devid
             item = f"/c{adapter}/e{enclosure}/s{slot}"
 
             disk = megaraid.PDisk(
